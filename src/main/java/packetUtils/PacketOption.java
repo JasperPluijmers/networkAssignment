@@ -1,7 +1,8 @@
 package packetUtils;
 
 public enum PacketOption {
-    Setup((byte) 0);
+    Setup((byte) 0),
+    Discover((byte) 1);
 
     private final byte value;
 
