@@ -1,8 +1,10 @@
 package packetUtils;
 
 public enum PacketOption {
-    Setup((byte) 0),
-    Discover((byte) 1);
+    Discover((byte) 0),
+    Discovered((byte) 1),
+    Setup((byte) 2),
+    Accept((byte) 3);
 
     private final byte value;
 

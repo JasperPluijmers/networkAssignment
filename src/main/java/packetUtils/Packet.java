@@ -11,7 +11,14 @@ public class Packet {
     private byte[] data;
 
     public Packet() {
+        this.data = new byte[0];
+    }
 
+    public Packet(byte id, PacketOption option, int number, byte[] data) {
+        this.id = id;
+        this.option = option;
+        this.number = toBytes(number);
+        this.data = data;
     }
 
     public Packet(byte[] packetData) {

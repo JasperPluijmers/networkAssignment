@@ -1,5 +1,7 @@
-package server;
+package trafficUtils;
 
+import packetUtils.Packet;
+import sun.awt.datatransfer.DataTransferer;
 import utils.Logger;
 
 import java.io.IOException;
@@ -13,18 +15,24 @@ public class Listener implements Runnable {
 
     private DatagramSocket listeningSocket;
 
-    public static void main(String[] args) {
-        Listener listener = new Listener(LISTENING_PORT);
-        Thread t = new Thread(listener);
-        t.start();
-    }
-
     public Listener(int port) {
         try {
             listeningSocket = new DatagramSocket(port);
         } catch (SocketException e) {
             e.printStackTrace();
         }
+    }
+
+    public Listener() {
+        try {
+            listeningSocket = new DatagramSocket();
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Listener(DatagramSocket listeningSocket) {
+        this.listeningSocket = listeningSocket;
     }
 
     @Override
@@ -36,13 +44,20 @@ public class Listener implements Runnable {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            Logger.log("received message");
             handlePackage(receivedPacket);
         }
     }
 
-    private void handlePackage(DatagramPacket receivedPacket) {
-        Logger.log("Received a packet with payload: " + new String(receivedPacket.getData()));
-        Logger.log("Address:" + receivedPacket.getAddress());
-        Logger.log("" + receivedPacket.getSocketAddress());
+    public void handlePackage(DatagramPacket receivedPacket) {
+        Packet packet = new Packet(receivedPacket.getData());
+        Logger.log("packetType: " + packet.getOption());
+        Logger.log("id: " + packet.getId());
+        Logger.log("number: " + packet.getNumber());
+        Logger.log("data:" + new String(packet.getData()));
+    }
+
+    public DatagramSocket getSocket() {
+        return this.listeningSocket;
     }
 }

@@ -1,29 +1,51 @@
 package client;
 
+import packetUtils.Packet;
+import packetUtils.PacketCreator;
+import packetUtils.PacketOption;
+import trafficUtils.Listener;
+import trafficUtils.Sender;
+import utils.Logger;
+
+import javax.xml.crypto.Data;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 
-public class Broadcaster {
+import static java.lang.Thread.sleep;
 
-    private static DatagramSocket socket;
+public class Broadcaster extends Listener {
 
+    private Sender sender;
 
-    public static void main(String[] args) throws IOException {
-        broadcast("Hello", InetAddress.getByName("255.255.255.255"));
+    public Broadcaster(DatagramSocket datagramSocket) {
+        super(datagramSocket);
+        sender = new Sender(datagramSocket);
     }
 
-    public static void broadcast(String broadcastMessage, InetAddress address) throws IOException {
-        socket = new DatagramSocket();
-        socket.setBroadcast(true);
+    public static void main(String[] args) throws Exception {
 
+        DatagramSocket datagramSocket = new DatagramSocket(5409);
+        Broadcaster broadcaster = new Broadcaster(datagramSocket);
+        Thread thread = new Thread(broadcaster);
+        thread.start();
+        broadcaster.broadcast();
+    }
 
-        byte[] buffer = broadcastMessage.getBytes();
+    @Override
+    public void handlePackage(DatagramPacket datagramPacket) {
+        Packet packet = new Packet(datagramPacket.getData());
 
-        DatagramPacket packet
-                = new DatagramPacket(buffer, buffer.length, address, 3651);
-        socket.send(packet);
-        socket.close();
+        Logger.log("packetType: " + packet.getOption());
+        Logger.log("id: " + packet.getId());
+        Logger.log("number: " + packet.getNumber());
+        Logger.log("data:" + new String(packet.getData()));
+        if (packet.getOption() == PacketOption.Discovered) {
+            sender.send(PacketCreator.setupPacket(datagramPacket.getAddress(), datagramPacket.getPort()));
+        }
+    }
+
+    private void broadcast() throws IOException {
+        sender.send(PacketCreator.discoverPacket());
     }
 }
