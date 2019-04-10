@@ -10,14 +10,15 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.*;
 
 public class SendHandler {
 
     private static final int MAXIMUM_WINDOW_SIZE = 10;
     private static final int DATA_SIZE = 1000;
     private static final int RESEND_TIME = 100;
+    private ScheduledExecutorService resendManager = Executors.newSingleThreadScheduledExecutor();
     private byte id;
     private ServerSession serverSession;
     private Set<Packet> sentPackets;
@@ -25,6 +26,7 @@ public class SendHandler {
     private boolean isdone;
     private FileInputStream fileInputStream;
     private int number;
+    private Map<Integer, ScheduledFuture> scheduledResends;
 
     public SendHandler(byte id, ServerSession serverSession) {
         this.id = id;
@@ -40,6 +42,7 @@ public class SendHandler {
         fileInputStream = new FileInputStream(file);
         sentPackets = new HashSet<>();
         serverSession.sender.send(PacketCreator.beginOfFile(file.getName(),file.length(), id , serverSession.getDestinationAddress(), serverSession.getDestinationPort()));
+        scheduledResends = new HashMap<>();
         number = 2;
         try {
             fillPackets();
@@ -75,7 +78,9 @@ public class SendHandler {
     public void acknowledge(Packet packet) throws IOException {
         int acknowledged = packet.getNumber();
         sentPackets.removeIf(sentPacket -> sentPacket.getNumber() == acknowledged);
-        Logger.log("SentPackets after ack: " + sentPackets);
+        if (scheduledResends.containsKey(acknowledged)) {
+            scheduledResends.get(acknowledged).cancel(true);
+        }
         if (!(fileInputStream.available() == 0 &&  sentPackets.size() == 0)) {
             try {
                 fillPackets();
@@ -87,6 +92,7 @@ public class SendHandler {
 
     private void resend(DatagramPacket datagramPacket) {
         serverSession.sender.send(datagramPacket);
-
+        ScheduledFuture<?> scheduledEvent = resendManager.schedule(() -> this.resend(datagramPacket), RESEND_TIME, TimeUnit.MILLISECONDS);
+        scheduledResends.put(new Packet(datagramPacket).getNumber(), scheduledEvent);
     }
 }

@@ -4,6 +4,7 @@ import packetUtils.Packet;
 import packetUtils.PacketCreator;
 import packetUtils.requestCreator;
 import trafficUtils.Listener;
+import trafficUtils.ReceiveHandler;
 import trafficUtils.Sender;
 import trafficUtils.Server;
 import utils.Logger;
@@ -13,7 +14,6 @@ import java.net.DatagramSocket;
 import java.util.HashSet;
 import java.util.Set;
 
-import static java.lang.Thread.activeCount;
 import static java.lang.Thread.sleep;
 
 public class Client extends Listener {
@@ -59,7 +59,12 @@ public class Client extends Listener {
                 break;
             case Data:
                 if (receiveHandler.isActive()) {
-                    receiveHandler.newPacket(new Packet(datagramPacket));
+                    receiveHandler.newPacket(packet);
+                }
+                break;
+            case EndOfFile:
+                if (receiveHandler.isActive()) {
+                    receiveHandler.endOfFile(packet);
                 }
         }
     }

@@ -1,4 +1,4 @@
-package client;
+package trafficUtils;
 
 import packetUtils.Packet;
 import utils.Logger;
@@ -47,7 +47,9 @@ public class ReceiveHandler {
     }
 
     public void newPacket(Packet packet) {
-        packetQueue.put(packet.getNumber(), packet);
+        if (packet.getNumber() > lastWritten) {
+            packetQueue.put(packet.getNumber(), packet);
+        }
         checkQueue();
     }
 
@@ -70,5 +72,9 @@ public class ReceiveHandler {
 
     public boolean isActive() {
         return active;
+    }
+
+    public void endOfFile(Packet packet) {
+
     }
 }
