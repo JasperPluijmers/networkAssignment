@@ -1,8 +1,6 @@
-package server;
+package trafficUtils;
 
 import packetUtils.PacketCreator;
-import trafficUtils.Listener;
-import trafficUtils.Sender;
 
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -10,10 +8,10 @@ import java.util.Random;
 
 public class Session extends Listener {
 
-    private Sender sender;
-    private InetAddress destinationAddress;
-    private int destinationPort;
-    private byte id;
+    protected Sender sender;
+    protected InetAddress destinationAddress;
+    protected int destinationPort;
+    protected byte id;
 
     public Session(InetAddress address, int destinationPort) {
         super();
@@ -26,11 +24,6 @@ public class Session extends Listener {
     public void init() {
         Thread listening = new Thread(this);
         listening.start();
-        sender.send(PacketCreator.acceptPacket(destinationAddress, destinationPort, id));
     }
 
-    @Override
-    public void handlePackage(DatagramPacket receivedPacket) {
-
-    }
 }

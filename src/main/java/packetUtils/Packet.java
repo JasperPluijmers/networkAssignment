@@ -28,7 +28,11 @@ public class Packet {
         this.data = Arrays.copyOfRange(packetData,6,packetData.length);
     }
 
-    public int getId() {
+    public Packet(DatagramPacket datagramPacket) {
+        this(Arrays.copyOfRange(datagramPacket.getData(),0,datagramPacket.getLength()));
+    }
+
+    public byte getId() {
         return id;
     }
 
@@ -59,6 +63,10 @@ public class Packet {
 
     public void setOption(PacketOption option) {
         this.option = option;
+    }
+
+    public String toString() {
+        return option +  " Packet with number: " + toInt(number) + " and id: " + id;
     }
 
     public byte[] asByteArray() {
@@ -95,6 +103,7 @@ public class Packet {
         }
         return ret;
     }
+
 
 
 }

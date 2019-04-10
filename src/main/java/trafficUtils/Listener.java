@@ -1,7 +1,6 @@
 package trafficUtils;
 
 import packetUtils.Packet;
-import sun.awt.datatransfer.DataTransferer;
 import utils.Logger;
 
 import java.io.IOException;
@@ -11,7 +10,7 @@ import java.net.SocketException;
 
 public class Listener implements Runnable {
     private static final int LISTENING_PORT = 3651;
-    private static final byte[] buffer = new byte[256];
+    private static final byte[] buffer = new byte[1024];
 
     private DatagramSocket listeningSocket;
 
@@ -51,10 +50,7 @@ public class Listener implements Runnable {
 
     public void handlePackage(DatagramPacket receivedPacket) {
         Packet packet = new Packet(receivedPacket.getData());
-        Logger.log("packetType: " + packet.getOption());
-        Logger.log("id: " + packet.getId());
-        Logger.log("number: " + packet.getNumber());
-        Logger.log("data:" + new String(packet.getData()));
+        Logger.logPacket(packet);
     }
 
     public DatagramSocket getSocket() {

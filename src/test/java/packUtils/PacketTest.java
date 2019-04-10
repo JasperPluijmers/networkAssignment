@@ -9,17 +9,16 @@ import packetUtils.PacketOption;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Arrays;
 
 public class PacketTest {
     private static final byte PACKET_ID = 1;
     private static final int PACKET_NUMBER = 2;
     private static final PacketOption PACKET_OPTION = PacketOption.Setup;
-    private static final byte[] PACKET_DATA = new byte[]{1,2,3,4,5};
+    private static final byte[] PACKET_DATA = "gekke man".getBytes();
     private static final String DESTINATION_ADDRESS = "localhost";
     private static final int DESTINATION_PORT = 1000;
-    InetAddress destination;
-    Packet newPacket;
+    private InetAddress destination;
+    private Packet newPacket;
 
     @Before
     public void setUp() {

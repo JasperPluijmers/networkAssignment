@@ -4,7 +4,13 @@ public enum PacketOption {
     Discover((byte) 0),
     Discovered((byte) 1),
     Setup((byte) 2),
-    Accept((byte) 3);
+    Accept((byte) 3),
+    Request((byte) 4),
+    Acknowledge((byte) 5),
+    Files ((byte) 6),
+    Data((byte) 7),
+    EndOfFile((byte) 8),
+    BeginOfFile((byte) 9);
 
     private final byte value;
 

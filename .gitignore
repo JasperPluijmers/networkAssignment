@@ -1,3 +1,6 @@
 .idea/
 target/
 fileServer.iml
+.gradle/
+out/
+build/
