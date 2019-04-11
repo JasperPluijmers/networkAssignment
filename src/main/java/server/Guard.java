@@ -4,7 +4,6 @@ import packetUtils.Packet;
 import packetUtils.PacketCreator;
 import trafficUtils.Listener;
 import trafficUtils.Sender;
-import trafficUtils.Session;
 import utils.Logger;
 
 import java.net.DatagramPacket;
@@ -19,11 +18,6 @@ public class Guard extends Listener {
 
     private Sender sender;
     private String name = "testServer";
-
-    public Guard(int port) {
-        super(port);
-        sender = new Sender(SENDING_PORT);
-    }
 
     public Guard(DatagramSocket datagramSocket) {
         super(datagramSocket);
@@ -59,7 +53,7 @@ public class Guard extends Listener {
         Logger.log("Found a setup packet from: " + receivedPacket.getSocketAddress());
         InetAddress address = receivedPacket.getAddress();
         int destinationPort = receivedPacket.getPort();
-        Session nextSession = new ServerSession(address, destinationPort, ROOT_DIRECTORY);
+        ServerSession nextSession = new ServerSession(address, destinationPort, ROOT_DIRECTORY);
         nextSession.init();
     }
 

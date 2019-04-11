@@ -11,18 +11,4 @@ public enum Request {
     Request(byte value) {
         this.value = value;
     }
-
-    public static Request fromValue(byte value) {
-        for (Request request : Request.values()) {
-            if (request.value == value) {
-                return request;
-            }
-        }
-        throw new IllegalArgumentException("No field in enum found corresponding to value: " +
-                "" + value);
-    }
-
-    public byte getValue() {
-        return this.value;
-    }
 }

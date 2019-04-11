@@ -6,7 +6,7 @@ import packetUtils.requestCreator;
 import trafficUtils.Listener;
 import trafficUtils.ReceiveHandler;
 import trafficUtils.Sender;
-import trafficUtils.Server;
+import trafficUtils.Remote;
 import utils.Logger;
 
 import java.net.DatagramPacket;
@@ -20,30 +20,28 @@ public class Client extends Listener {
 
     private String directory = "/home/jasper.pluijmers/downloadFolder/";
     private Sender sender;
-    private Set<Server> discoveredServers;
-    private Server connectedServer;
+    private Set<Remote> discoveredRemotes;
+    private Remote connectedRemote;
     private byte connectionId;
     private ReceiveHandler receiveHandler;
 
     public Client(DatagramSocket datagramSocket) {
         super(datagramSocket);
         sender = new Sender(datagramSocket);
-        discoveredServers = new HashSet<>();
+        discoveredRemotes = new HashSet<>();
     }
 
     public static void main(String[] args) throws Exception {
-        DatagramSocket datagramSocket = new DatagramSocket(5409);
+        DatagramSocket datagramSocket = new DatagramSocket();
         Client client = new Client(datagramSocket);
         Thread thread = new Thread(client);
         thread.start();
         client.discover();
     }
 
-    @Override
     public void handlePackage(DatagramPacket datagramPacket) {
         Packet packet = new Packet(datagramPacket);
         Logger.logPacket(packet);
-
         if (packet.getNumber() != 0) {
             sendAcknowledge(packet.getNumber());
         }
@@ -77,22 +75,22 @@ public class Client extends Listener {
     }
 
     private void sendAcknowledge(int number) {
-        sender.send(PacketCreator.ackPacket(connectedServer.getAddress(),connectedServer.getPort(),number, connectionId));
+        sender.send(PacketCreator.ackPacket(connectedRemote.getAddress(), connectedRemote.getPort(),number, connectionId));
     }
 
     private void handleAccept(DatagramPacket datagramPacket) {
         Packet packet = new Packet(datagramPacket);
-        connectedServer = new Server(new String(packet.getData()), datagramPacket.getAddress(), datagramPacket.getPort());
+        connectedRemote = new Remote(new String(packet.getData()), datagramPacket.getAddress(), datagramPacket.getPort());
         connectionId = packet.getId();
-        Logger.log("in sessie " + connectionId + " met: " + connectedServer.getAddress() + ":" + connectedServer.getPort());
+        Logger.log("in sessie " + connectionId + " met: " + connectedRemote.getAddress() + ":" + connectedRemote.getPort());
         askDownload("/kud.mp4");
     }
     private void handleDiscovered(DatagramPacket datagramPacket) {
         sender.send(PacketCreator.setupPacket(datagramPacket.getAddress(), datagramPacket.getPort()));
         Packet packet = new Packet(datagramPacket);
-        Server newServer = new Server(new String(packet.getData()), datagramPacket.getAddress(), datagramPacket.getPort());
-        discoveredServers.add(newServer);
-        Logger.log("discovered servers: " + discoveredServers);
+        Remote newRemote = new Remote(new String(packet.getData()), datagramPacket.getAddress(), datagramPacket.getPort());
+        discoveredRemotes.add(newRemote);
+        Logger.log("discovered servers: " + discoveredRemotes);
     }
 
     private void discover() {
@@ -100,10 +98,10 @@ public class Client extends Listener {
     }
 
    private void askFiles(String path) {
-        sender.send(PacketCreator.requestPacket(requestCreator.filesRequest(path), connectedServer.getAddress(), connectedServer.getPort(), connectionId));
+        sender.send(PacketCreator.requestPacket(requestCreator.filesRequest(path), connectedRemote.getAddress(), connectedRemote.getPort(), connectionId));
     }
 
     private void askDownload(String path) {
-        sender.send(PacketCreator.requestPacket(requestCreator.downloadRequest(path), connectedServer.getAddress(), connectedServer.getPort(), connectionId));
+        sender.send(PacketCreator.requestPacket(requestCreator.downloadRequest(path), connectedRemote.getAddress(), connectedRemote.getPort(), connectionId));
     }
 }

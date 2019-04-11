@@ -2,7 +2,7 @@ package trafficUtils;
 
 import java.net.InetAddress;
 
-public class Server {
+public class Remote {
 
 
 
@@ -10,7 +10,7 @@ public class Server {
     private final InetAddress address;
     private final int port;
 
-    public Server(String name, InetAddress address, int port) {
+    public Remote(String name, InetAddress address, int port) {
         this.name = name;
         this.address = address;
         this.port = port;
@@ -35,16 +35,15 @@ public class Server {
             return true;
         }
 
-        if (!(o instanceof Server)) {
+        if (!(o instanceof Remote)) {
             return false;
         }
 
-        Server otherServer = (Server) o;
+        Remote otherRemote = (Remote) o;
 
-        return (otherServer.getName().equals(name))
-                && (otherServer.getPort() == port)
-                && (otherServer.getAddress().equals(address));
-
+        return (otherRemote.getName().equals(name))
+                && (otherRemote.getPort() == port)
+                && (otherRemote.getAddress().equals(address));
     }
 
     @Override

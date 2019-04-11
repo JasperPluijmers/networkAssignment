@@ -3,8 +3,9 @@ package server;
 import packetUtils.Packet;
 import packetUtils.PacketCreator;
 import packetUtils.Request;
+import trafficUtils.Listener;
 import trafficUtils.SendHandler;
-import trafficUtils.Session;
+import trafficUtils.Sender;
 import utils.Logger;
 
 import java.io.File;
@@ -12,20 +13,28 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.util.Random;
 
-public class ServerSession extends Session {
+public class ServerSession extends Listener {
 
+    protected Sender sender;
+    protected InetAddress destinationAddress;
+    protected int destinationPort;
+    protected byte id;
 
     private final String directory;
     private SendHandler sendHandler;
 
     public ServerSession(InetAddress address, int destinationPort, String directory) {
-        super(address, destinationPort);
+        super();
+        this.destinationAddress = address;
+        this.destinationPort = destinationPort;
+        this.sender = new Sender(super.getSocket());
+        this.id =(byte) new Random().nextInt();
         this.directory = directory;
-        sendHandler = new SendHandler(id, this);
+        sendHandler = new SendHandler(id, destinationAddress, destinationPort, sender);
     }
 
-    @Override
     public void init() {
         Thread listening = new Thread(this);
         listening.start();
@@ -58,7 +67,6 @@ public class ServerSession extends Session {
         String request = new String(packet.getData());
         String path = request.split(" ")[1];
         String command = request.split(" ")[0];
-
         switch (Request.valueOf(command)) {
             case files:
                 handleFileRequest(path);
@@ -78,7 +86,6 @@ public class ServerSession extends Session {
 
     private void handleDownloadRequest(String path) {
         File file = new File(directory+path);
-        Logger.log("hoi");
         if (file.exists() && file.isFile()) {
             try {
                 sendHandler.init(file);

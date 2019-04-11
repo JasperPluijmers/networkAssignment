@@ -6,6 +6,7 @@ import javax.xml.crypto.Data;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 
 public class PacketCreator {
     private static final int DISCOVER_PORT = 3651;
@@ -25,7 +26,6 @@ public class PacketCreator {
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
-
 
         return datagramPacket;
     }
@@ -65,12 +65,14 @@ public class PacketCreator {
         return packetToUdp(packet, port, address);
     }
 
-    public static DatagramPacket eofPacket(int number, byte id, InetAddress address, int port) {
-        Packet packet = new Packet(id, PacketOption.EndOfFile, number, new byte[0]);
+    public static DatagramPacket eofPacket(int number, byte id, InetAddress address, int port, long checksum) {
+        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
+        buffer.putLong(checksum);
+        Packet packet = new Packet(id, PacketOption.EndOfFile, number, buffer.array());
         return packetToUdp(packet, port, address);
     }
 
-    public static DatagramPacket beginOfFile(String name, long length, byte id,  InetAddress address, int port) {
+    public static DatagramPacket bofPacket(String name, long length, byte id, InetAddress address, int port) {
         Packet packet = new Packet(id, PacketOption.BeginOfFile, (byte) 1, (name + "+" + length).getBytes());
         return packetToUdp(packet, port, address);
     }
