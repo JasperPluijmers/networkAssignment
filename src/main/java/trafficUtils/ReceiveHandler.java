@@ -4,13 +4,10 @@ import packetUtils.Packet;
 import utils.CheckSum;
 import utils.Logger;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,7 +22,8 @@ public class ReceiveHandler {
     private long receivedCheckSum;
     private int lastPackage;
     private boolean eofReached;
-
+    private BufferedOutputStream bufferedOutputStream;
+    private long startTime;
     public ReceiveHandler(String directory, String fileName) {
         this.directory = directory;
         this.fileName = fileName;
@@ -34,11 +32,13 @@ public class ReceiveHandler {
     }
 
     public void init() {
+        startTime = System.currentTimeMillis();
         File writingDirectory = new File(directory);
         if (writingDirectory.exists() && writingDirectory.isDirectory()) {
             writingPath = Paths.get(new File(directory + fileName).getAbsolutePath());
             try {
-                Files.createFile(writingPath);
+                FileOutputStream fileOutputStream = new FileOutputStream(writingPath.toString(), true);
+                bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -60,7 +60,7 @@ public class ReceiveHandler {
     private void checkQueue() {
         if (packetQueue.containsKey(lastWritten + 1)) {
             try {
-                Files.write(writingPath,packetQueue.get(lastWritten + 1).getData(), StandardOpenOption.APPEND);
+                bufferedOutputStream.write(packetQueue.get(lastWritten + 1).getData(), 0, packetQueue.get(lastWritten + 1).getData().length);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -74,6 +74,11 @@ public class ReceiveHandler {
     }
 
     private void checkCheckSum() {
+        try {
+            bufferedOutputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         long calculatedChecksum = 0;
         try {
             calculatedChecksum = CheckSum.getCheckSum(writingPath.toString());
@@ -81,12 +86,16 @@ public class ReceiveHandler {
             e.printStackTrace();
         }
         if (receivedCheckSum == calculatedChecksum) {
+            long lapsedTime = (System.currentTimeMillis() - startTime)/1000;
+
             Logger.log("File: " + fileName + " received correctly!");
+            Logger.log("Transfer took: " + (System.currentTimeMillis() - startTime)/1000 + " seconds");
+            Logger.log("Rate: " + new File(writingPath.toString()).length()/lapsedTime + " b/s");
         } else {
             Logger.log("Checksum incorrect, received: " + receivedCheckSum + ". Calculated: " + calculatedChecksum);
+            Logger.log("Transfer took: " + (System.currentTimeMillis() - startTime)/1000 + " seconds");
         }
     }
-
 
     public void endOfFile(Packet packet) {
         ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
@@ -98,6 +107,10 @@ public class ReceiveHandler {
         if (lastWritten == lastPackage) {
             checkCheckSum();
         }
+    }
+
+    public void pause(boolean pause) {
+        active = pause;
     }
 
     public boolean isActive() {

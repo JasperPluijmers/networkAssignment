@@ -11,7 +11,8 @@ public enum PacketOption {
     Data((byte) 7),
     EndOfFile((byte) 8),
     BeginOfFile((byte) 9),
-    Error((byte) 10);
+    Error((byte) 10),
+    Close((byte) 10);
 
     private final byte value;
 

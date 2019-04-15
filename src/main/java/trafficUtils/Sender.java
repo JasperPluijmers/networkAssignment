@@ -15,7 +15,7 @@ public class Sender {
     }
 
     public void send(DatagramPacket datagramPacket) {
-        Logger.log("sending message");
+        /*Logger.log("sending message");*/
         try {
             datagramSocket.send(datagramPacket);
         } catch (IOException e) {

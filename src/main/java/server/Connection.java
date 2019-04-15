@@ -45,7 +45,7 @@ public class Connection extends Listener {
     @Override
     public void handlePackage(DatagramPacket datagramPacket) {
         Packet packet = new Packet(datagramPacket);
-        Logger.logPacket(packet);
+        /*Logger.logPacket(packet);*/
         updateLastMessage();
         switch (packet.getOption()) {
             case Request:
@@ -100,6 +100,9 @@ public class Connection extends Listener {
 
     public void close(String message) {
         super.close();
+        if (sendHandler.isActive()) {
+            sendHandler.close();
+        }
         sender.send(PacketCreator.closePacket(message, destinationAddress, destinationPort, id));
     }
 

@@ -9,13 +9,17 @@ import utils.Logger;
 
 import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Guard extends Listener {
     private static final int LISTENING_PORT = 3651;
-    private static final String ROOT_DIRECTORY = "D:/networkSystems/uploadFolder";
+    private static final String ROOT_DIRECTORY = "/home/jasper.pluijmers/nws";
 
+    private static ScheduledExecutorService connectionChecker = Executors.newSingleThreadScheduledExecutor();
     private Sender sender;
     private String name = "testServer";
     private List<Connection> connections;
@@ -23,8 +27,10 @@ public class Guard extends Listener {
     public Guard(int port) {
         super(port);
         sender = new Sender(super.getSocket());
+        connections = new ArrayList<>();
         Thread thread = new Thread(this);
         thread.start();
+        connectionChecker.scheduleAtFixedRate(this::checkConnections, Constants.CONNECTION_TIMEOUT_IN_MINUTES, Constants.CONNECTION_TIMEOUT_IN_MINUTES, TimeUnit.MINUTES);
     }
     public static void main(String[] args) {
         Guard guard = new Guard(LISTENING_PORT);
@@ -42,7 +48,7 @@ public class Guard extends Listener {
                 handleSetup(receivedPacket);
                 break;
         }
-        Logger.logPacket(packet);
+        /*Logger.logPacket(packet);*/
     }
 
     private void handleSetup(DatagramPacket receivedPacket) {
@@ -61,9 +67,10 @@ public class Guard extends Listener {
 
     private void checkConnections() {
         for (Connection connection: connections) {
-            if (System.currentTimeMillis() - connection.getLastMessage() > Constants.CONNECTION_TIMEOUT) {
+            if (System.currentTimeMillis() - connection.getLastMessage() > Constants.CONNECTION_TIMEOUT_IN_MINUTES) {
                 connection.close("Timeout");
             }
         }
+        connections.removeIf(connection -> System.currentTimeMillis() - connection.getLastMessage() > Constants.CONNECTION_TIMEOUT_IN_MINUTES);
     }
 }

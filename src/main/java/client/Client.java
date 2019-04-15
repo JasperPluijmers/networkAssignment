@@ -18,8 +18,7 @@ import static java.lang.Thread.sleep;
 
 public class Client extends Listener {
 
-    /*private String directory = "/home/jasper.pluijmers/downloadFolder/";*/
-    private String directory = "D:/networkSystems/downloadFolder/";
+    private String directory = "/home/jasper.pluijmers/downloadFolder/";
     private Sender sender;
     private Set<Remote> discoveredRemotes;
     private Remote connectedRemote;
@@ -38,12 +37,12 @@ public class Client extends Listener {
         Client client = new Client();
         client.discover();
         sleep(100);
-        client.askDownload("/farcry.jpg");
+        client.askDownload("/kud.mp4");
     }
 
     public void handlePackage(DatagramPacket datagramPacket) {
         Packet packet = new Packet(datagramPacket);
-        Logger.logPacket(packet);
+        /*Logger.logPacket(packet);*/
         if (packet.getNumber() != 0) {
             sendAcknowledge(packet.getNumber());
         }
@@ -94,11 +93,13 @@ public class Client extends Listener {
         connectionId = packet.getId();
         Logger.log("Connection " + connectionId + " with: " + connectedRemote.getAddress() + ":" + connectedRemote.getPort());
     }
+
     private void handleDiscovered(DatagramPacket datagramPacket) {
         sender.send(PacketCreator.setupPacket(datagramPacket.getAddress(), datagramPacket.getPort()));
         Packet packet = new Packet(datagramPacket);
         Remote newRemote = new Remote(new String(packet.getData()), datagramPacket.getAddress(), datagramPacket.getPort());
         discoveredRemotes.add(newRemote);
+
         Logger.log("discovered servers: " + discoveredRemotes);
     }
 

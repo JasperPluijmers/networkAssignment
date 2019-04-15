@@ -81,4 +81,9 @@ public class PacketCreator {
         Packet packet = new Packet(id, PacketOption.Error, 0,  message.getBytes());
         return packetToUdp(packet, port, address);
     }
+
+    public static DatagramPacket closePacket(String message, InetAddress address, int port, byte id) {
+        Packet packet = new Packet(id, PacketOption.Close, 0, message.getBytes());
+        return packetToUdp(packet, port, address);
+    }
 }

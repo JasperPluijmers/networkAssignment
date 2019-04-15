@@ -6,10 +6,7 @@ import utils.CheckSum;
 import utils.Logger;
 import utils.Constants;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.util.*;
@@ -19,7 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class SendHandler {
 
     private static final int MAXIMUM_WINDOW_SIZE = 10;
-    private static final int RESEND_TIME = 5;
+    private static final int RESEND_TIME = 100;
     private final Sender sender;
     private final int destinationPort;
     private final InetAddress destinationAddress;
@@ -29,7 +26,7 @@ public class SendHandler {
     private Set<Packet> sentPackets;
     private boolean active;
     private boolean isDone;
-    private FileInputStream fileInputStream;
+    private BufferedInputStream bufferedInputStream;
     private AtomicInteger number;
     private Map<Integer, ScheduledFuture> retransmitSchedules;
     private File readFile;
@@ -50,16 +47,17 @@ public class SendHandler {
         this.readFile=file;
         Logger.log("starting download for: " + file);
         active = true;
-        fileInputStream = new FileInputStream(file);
+        FileInputStream fileInputStream = new FileInputStream(file);
+        bufferedInputStream = new BufferedInputStream(fileInputStream);
         sender.send(PacketCreator.bofPacket(file.getName(),file.length(), id , destinationAddress, destinationPort));
         number.set(2);
     }
 
     public void fillPackets() throws IOException {
         if (sentPackets.size() < MAXIMUM_WINDOW_SIZE) {
-            if (fileInputStream.available() > 0) {
+            if (bufferedInputStream.available() > 0) {
                 byte[] data = new byte[Constants.MAXIMUM_DATA_SIZE];
-                int bytesRead = fileInputStream.read(data);
+                int bytesRead = bufferedInputStream.read(data);
                 DatagramPacket datagramPacket;
                 if (bytesRead < Constants.MAXIMUM_DATA_SIZE) {
                     datagramPacket = PacketCreator.dataPacket(number.incrementAndGet(), id, Arrays.copyOfRange(data, 0, bytesRead), destinationAddress, destinationPort);
@@ -89,7 +87,7 @@ public class SendHandler {
         if (retransmitSchedules.containsKey(acknowledged)) {
             retransmitSchedules.get(acknowledged).cancel(true);
         }
-        if (!(fileInputStream.available() == 0 &&  sentPackets.size() == 0)) {
+        if (!(bufferedInputStream.available() == 0 &&  sentPackets.size() == 0)) {
             try {
 
                 fillPackets();
@@ -103,5 +101,9 @@ public class SendHandler {
         sender.send(datagramPacket);
         ScheduledFuture<?> scheduledEvent = resendManager.schedule(() -> this.send(datagramPacket), RESEND_TIME, TimeUnit.MILLISECONDS);
         retransmitSchedules.put(new Packet(datagramPacket).getNumber(), scheduledEvent);
+    }
+
+    public void close() {
+        active = false;
     }
 }
