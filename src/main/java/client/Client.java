@@ -18,25 +18,27 @@ import static java.lang.Thread.sleep;
 
 public class Client extends Listener {
 
-    private String directory = "/home/jasper.pluijmers/downloadFolder/";
+    /*private String directory = "/home/jasper.pluijmers/downloadFolder/";*/
+    private String directory = "D:/networkSystems/downloadFolder/";
     private Sender sender;
     private Set<Remote> discoveredRemotes;
     private Remote connectedRemote;
     private byte connectionId;
     private ReceiveHandler receiveHandler;
 
-    public Client(DatagramSocket datagramSocket) {
-        super(datagramSocket);
-        sender = new Sender(datagramSocket);
+    public Client() {
+        super();
+        sender = new Sender(super.getSocket());
         discoveredRemotes = new HashSet<>();
+        Thread thread = new Thread(this);
+        thread.start();
     }
 
     public static void main(String[] args) throws Exception {
-        DatagramSocket datagramSocket = new DatagramSocket();
-        Client client = new Client(datagramSocket);
-        Thread thread = new Thread(client);
-        thread.start();
+        Client client = new Client();
         client.discover();
+        sleep(100);
+        client.askDownload("/farcry.jpg");
     }
 
     public void handlePackage(DatagramPacket datagramPacket) {
@@ -64,7 +66,15 @@ public class Client extends Listener {
                 if (receiveHandler.isActive()) {
                     receiveHandler.endOfFile(packet);
                 }
+                break;
+            case Error:
+                errorHandler(datagramPacket);
+                break;
         }
+    }
+
+    private void errorHandler(DatagramPacket datagramPacket) {
+        Logger.log("Error: " + new String(new Packet(datagramPacket).getData()));
     }
 
     private void handleBeginOfFile(DatagramPacket datagramPacket) {
@@ -82,8 +92,7 @@ public class Client extends Listener {
         Packet packet = new Packet(datagramPacket);
         connectedRemote = new Remote(new String(packet.getData()), datagramPacket.getAddress(), datagramPacket.getPort());
         connectionId = packet.getId();
-        Logger.log("in sessie " + connectionId + " met: " + connectedRemote.getAddress() + ":" + connectedRemote.getPort());
-        askDownload("/kud.mp4");
+        Logger.log("Connection " + connectionId + " with: " + connectedRemote.getAddress() + ":" + connectedRemote.getPort());
     }
     private void handleDiscovered(DatagramPacket datagramPacket) {
         sender.send(PacketCreator.setupPacket(datagramPacket.getAddress(), datagramPacket.getPort()));
@@ -97,7 +106,7 @@ public class Client extends Listener {
         sender.send(PacketCreator.discoverPacket());
     }
 
-   private void askFiles(String path) {
+    private void askFiles(String path) {
         sender.send(PacketCreator.requestPacket(requestCreator.filesRequest(path), connectedRemote.getAddress(), connectedRemote.getPort(), connectionId));
     }
 

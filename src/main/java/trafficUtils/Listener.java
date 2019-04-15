@@ -1,8 +1,7 @@
 package trafficUtils;
 
-import packetUtils.Packet;
+
 import utils.Constants;
-import utils.Logger;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -13,6 +12,7 @@ public abstract class Listener implements Runnable {
     private static final byte[] buffer = new byte[Constants.MAXIMUM_DATA_SIZE + Constants.HEADER_SIZE];
 
     private DatagramSocket listeningSocket;
+    private boolean running;
 
     public Listener() {
         try {
@@ -22,13 +22,18 @@ public abstract class Listener implements Runnable {
         }
     }
 
-    public Listener(DatagramSocket listeningSocket) {
-        this.listeningSocket = listeningSocket;
+    public Listener(int port) {
+        try {
+            listeningSocket = new DatagramSocket(port);
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void run() {
-        while (true) {
+        running = true;
+        while (running) {
             DatagramPacket receivedPacket = new DatagramPacket(buffer, buffer.length);
             try {
                 listeningSocket.receive(receivedPacket);
@@ -40,6 +45,10 @@ public abstract class Listener implements Runnable {
     }
 
     public abstract void handlePackage(DatagramPacket receivedPacket);
+
+    public void close() {
+        running = false;
+    }
 
     public DatagramSocket getSocket() {
         return this.listeningSocket;

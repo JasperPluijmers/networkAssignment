@@ -76,4 +76,9 @@ public class PacketCreator {
         Packet packet = new Packet(id, PacketOption.BeginOfFile, (byte) 1, (name + "+" + length).getBytes());
         return packetToUdp(packet, port, address);
     }
+
+    public static DatagramPacket errorPacket(String message, InetAddress address, int port, byte id) {
+        Packet packet = new Packet(id, PacketOption.Error, 0,  message.getBytes());
+        return packetToUdp(packet, port, address);
+    }
 }

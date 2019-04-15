@@ -15,7 +15,7 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.util.Random;
 
-public class ServerSession extends Listener {
+public class Connection extends Listener {
 
     protected Sender sender;
     protected InetAddress destinationAddress;
@@ -24,8 +24,9 @@ public class ServerSession extends Listener {
 
     private final String directory;
     private SendHandler sendHandler;
+    private long lastMessage;
 
-    public ServerSession(InetAddress address, int destinationPort, String directory) {
+    public Connection(InetAddress address, int destinationPort, String directory) {
         super();
         this.destinationAddress = address;
         this.destinationPort = destinationPort;
@@ -45,7 +46,7 @@ public class ServerSession extends Listener {
     public void handlePackage(DatagramPacket datagramPacket) {
         Packet packet = new Packet(datagramPacket);
         Logger.logPacket(packet);
-
+        updateLastMessage();
         switch (packet.getOption()) {
             case Request:
                 handleRequest(datagramPacket);
@@ -85,25 +86,35 @@ public class ServerSession extends Listener {
     }
 
     private void handleDownloadRequest(String path) {
-        File file = new File(directory+path);
+        File file = new File(directory + path);
         if (file.exists() && file.isFile()) {
             try {
                 sendHandler.init(file);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
+        } else {
+            sendErrorMessage("File: " + directory + path + " does not exist.");
         }
     }
 
+    public void close(String message) {
+        super.close();
+        sender.send(PacketCreator.closePacket(message, destinationAddress, destinationPort, id));
+    }
+
+    private void sendErrorMessage(String message) {
+        sender.send(PacketCreator.errorPacket(message, destinationAddress, destinationPort, id));
+    }
     private void handleFileRequest(String path) {
         sender.send(PacketCreator.filesPacket(directory+path, destinationAddress, destinationPort, id));
     }
 
-    public InetAddress getDestinationAddress() {
-        return this.destinationAddress;
+    private void updateLastMessage() {
+        lastMessage = System.currentTimeMillis();
     }
 
-    public int getDestinationPort() {
-        return this.destinationPort;
+    public long getLastMessage() {
+        return lastMessage;
     }
 }

@@ -35,7 +35,7 @@ public class PacketTest {
         }
 
         DatagramPacket udpPacket = packet.asDatagramPacket(destination, DESTINATION_PORT);
-        newPacket = new Packet(udpPacket.getData());
+        newPacket = new Packet(udpPacket);
     }
 
     @Test

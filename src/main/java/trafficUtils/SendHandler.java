@@ -14,11 +14,11 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SendHandler {
 
     private static final int MAXIMUM_WINDOW_SIZE = 10;
-    private static final int DATA_SIZE = Constants.MAXIMUM_DATA_SIZE;
     private static final int RESEND_TIME = 5;
     private final Sender sender;
     private final int destinationPort;
@@ -28,10 +28,10 @@ public class SendHandler {
     private byte id;
     private Set<Packet> sentPackets;
     private boolean active;
-    private boolean isdone;
+    private boolean isDone;
     private FileInputStream fileInputStream;
-    private int number;
-    private Map<Integer, ScheduledFuture> scheduledResends;
+    private AtomicInteger number;
+    private Map<Integer, ScheduledFuture> retransmitSchedules;
     private File readFile;
 
     public SendHandler(byte id, InetAddress destinationAddress, int destinationPort, Sender sender) {
@@ -40,8 +40,10 @@ public class SendHandler {
         this.sender = sender;
         this.destinationAddress = destinationAddress;
         this.destinationPort = destinationPort;
-        this.number = 1;
-        this.isdone = false;
+        this.number = new AtomicInteger(1);
+        this.isDone = false;
+        retransmitSchedules = new HashMap<>();
+        sentPackets = new HashSet<>();
     }
 
     public void init(File file) throws FileNotFoundException {
@@ -49,37 +51,32 @@ public class SendHandler {
         Logger.log("starting download for: " + file);
         active = true;
         fileInputStream = new FileInputStream(file);
-        sentPackets = new HashSet<>();
         sender.send(PacketCreator.bofPacket(file.getName(),file.length(), id , destinationAddress, destinationPort));
-        scheduledResends = new HashMap<>();
-        number = 2;
+        number.set(2);
     }
 
     public void fillPackets() throws IOException {
         if (sentPackets.size() < MAXIMUM_WINDOW_SIZE) {
             if (fileInputStream.available() > 0) {
-                byte[] data = new byte[DATA_SIZE];
+                byte[] data = new byte[Constants.MAXIMUM_DATA_SIZE];
                 int bytesRead = fileInputStream.read(data);
-                number++;
                 DatagramPacket datagramPacket;
-                if (bytesRead < DATA_SIZE) {
-                    datagramPacket = PacketCreator.dataPacket(number, id, Arrays.copyOfRange(data, 0, bytesRead), destinationAddress, destinationPort);
+                if (bytesRead < Constants.MAXIMUM_DATA_SIZE) {
+                    datagramPacket = PacketCreator.dataPacket(number.incrementAndGet(), id, Arrays.copyOfRange(data, 0, bytesRead), destinationAddress, destinationPort);
                 } else {
-                     datagramPacket = PacketCreator.dataPacket(number, id, data, destinationAddress, destinationPort);
+                     datagramPacket = PacketCreator.dataPacket(number.incrementAndGet(), id, data, destinationAddress, destinationPort);
 
                 }
                 sentPackets.add(new Packet(datagramPacket));
-                resend(datagramPacket);
+                send(datagramPacket);
                 fillPackets();
-            } else if (!isdone){
-                number++;
-                DatagramPacket datagramPacket = PacketCreator.eofPacket(number, id, destinationAddress, destinationPort, CheckSum.getCheckSum(readFile.getAbsolutePath()));
-                resend(datagramPacket);
+            } else if (!isDone){
+                DatagramPacket datagramPacket = PacketCreator.eofPacket(number.incrementAndGet(), id, destinationAddress, destinationPort, CheckSum.getCheckSum(readFile.getAbsolutePath()));
+                send(datagramPacket);
                 sentPackets.add(new Packet(datagramPacket));
-                isdone = true;
+                isDone = true;
             }
-        }/*
-        Logger.log("Sent Packet after filling:" + sentPackets);*/
+        }
     }
 
     public boolean isActive() {
@@ -89,8 +86,8 @@ public class SendHandler {
     public void acknowledge(Packet packet) throws IOException {
         int acknowledged = packet.getNumber();
         sentPackets.removeIf(sentPacket -> sentPacket.getNumber() == acknowledged);
-        if (scheduledResends.containsKey(acknowledged)) {
-            scheduledResends.get(acknowledged).cancel(true);
+        if (retransmitSchedules.containsKey(acknowledged)) {
+            retransmitSchedules.get(acknowledged).cancel(true);
         }
         if (!(fileInputStream.available() == 0 &&  sentPackets.size() == 0)) {
             try {
@@ -102,9 +99,9 @@ public class SendHandler {
         }
     }
 
-    private void resend(DatagramPacket datagramPacket) {
+    private void send(DatagramPacket datagramPacket) {
         sender.send(datagramPacket);
-        ScheduledFuture<?> scheduledEvent = resendManager.schedule(() -> this.resend(datagramPacket), RESEND_TIME, TimeUnit.MILLISECONDS);
-        scheduledResends.put(new Packet(datagramPacket).getNumber(), scheduledEvent);
+        ScheduledFuture<?> scheduledEvent = resendManager.schedule(() -> this.send(datagramPacket), RESEND_TIME, TimeUnit.MILLISECONDS);
+        retransmitSchedules.put(new Packet(datagramPacket).getNumber(), scheduledEvent);
     }
 }

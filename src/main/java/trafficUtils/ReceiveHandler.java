@@ -34,8 +34,8 @@ public class ReceiveHandler {
     }
 
     public void init() {
-        File file = new File(directory);
-        if (file.exists() && file.isDirectory()) {
+        File writingDirectory = new File(directory);
+        if (writingDirectory.exists() && writingDirectory.isDirectory()) {
             writingPath = Paths.get(new File(directory + fileName).getAbsolutePath());
             try {
                 Files.createFile(writingPath);
@@ -46,7 +46,7 @@ public class ReceiveHandler {
             lastWritten = 2;
             active = true;
         } else {
-            Logger.log("What you tryin'?");
+            Logger.log(directory + " is not a directory.");
         }
     }
 
@@ -57,9 +57,7 @@ public class ReceiveHandler {
         checkQueue();
     }
 
-    private void checkQueue() {/*
-        Logger.log("packetQueue: " + packetQueue + " ");
-        Logger.log("nextPacket: " + (lastWritten + 1));*/
+    private void checkQueue() {
         if (packetQueue.containsKey(lastWritten + 1)) {
             try {
                 Files.write(writingPath,packetQueue.get(lastWritten + 1).getData(), StandardOpenOption.APPEND);
@@ -71,24 +69,24 @@ public class ReceiveHandler {
             checkQueue();
         }
         if (eofReached && lastWritten == lastPackage) {
-            long calculatedChecksum = 0;
-            try {
-                calculatedChecksum = CheckSum.getCheckSum(writingPath.toString());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            if (receivedCheckSum == calculatedChecksum) {
-                Logger.log("File: " + fileName + " received correctly!");
-            } else {
-                Logger.log("Checksum incorrect, received: " + receivedCheckSum + ". Calculated: " + calculatedChecksum);
-            }
+            checkCheckSum();
         }
     }
 
-
-    public boolean isActive() {
-        return active;
+    private void checkCheckSum() {
+        long calculatedChecksum = 0;
+        try {
+            calculatedChecksum = CheckSum.getCheckSum(writingPath.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (receivedCheckSum == calculatedChecksum) {
+            Logger.log("File: " + fileName + " received correctly!");
+        } else {
+            Logger.log("Checksum incorrect, received: " + receivedCheckSum + ". Calculated: " + calculatedChecksum);
+        }
     }
+
 
     public void endOfFile(Packet packet) {
         ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
@@ -97,6 +95,12 @@ public class ReceiveHandler {
         lastPackage = packet.getNumber() - 1;
         receivedCheckSum = buffer.getLong();
         eofReached = true;
-        checkQueue();
+        if (lastWritten == lastPackage) {
+            checkCheckSum();
+        }
+    }
+
+    public boolean isActive() {
+        return active;
     }
 }

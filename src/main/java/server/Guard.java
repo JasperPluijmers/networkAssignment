@@ -4,34 +4,30 @@ import packetUtils.Packet;
 import packetUtils.PacketCreator;
 import trafficUtils.Listener;
 import trafficUtils.Sender;
+import utils.Constants;
 import utils.Logger;
 
 import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketException;
+import java.util.List;
+import java.util.Map;
 
 public class Guard extends Listener {
     private static final int LISTENING_PORT = 3651;
-    private static final int SENDING_PORT = 3652;
-    private static final String ROOT_DIRECTORY = "/home/jasper.pluijmers/nws";
+    private static final String ROOT_DIRECTORY = "D:/networkSystems/uploadFolder";
 
     private Sender sender;
     private String name = "testServer";
+    private List<Connection> connections;
 
-    public Guard(DatagramSocket datagramSocket) {
-        super(datagramSocket);
-        sender = new Sender(datagramSocket);
+    public Guard(int port) {
+        super(port);
+        sender = new Sender(super.getSocket());
+        Thread thread = new Thread(this);
+        thread.start();
     }
     public static void main(String[] args) {
-        try {
-            DatagramSocket datagramSocket = new DatagramSocket(LISTENING_PORT);
-            Listener listener = new Guard(datagramSocket);
-            Thread thread = new Thread(listener);
-            thread.start();
-        } catch (SocketException e) {
-            e.printStackTrace();
-        }
+        Guard guard = new Guard(LISTENING_PORT);
     }
 
     @Override
@@ -53,12 +49,21 @@ public class Guard extends Listener {
         Logger.log("Found a setup packet from: " + receivedPacket.getSocketAddress());
         InetAddress address = receivedPacket.getAddress();
         int destinationPort = receivedPacket.getPort();
-        ServerSession nextSession = new ServerSession(address, destinationPort, ROOT_DIRECTORY);
+        Connection nextSession = new Connection(address, destinationPort, ROOT_DIRECTORY);
         nextSession.init();
+        connections.add(nextSession);
     }
 
     private void handleDiscover(DatagramPacket receivedPacket) {
         DatagramPacket discoveredPacket = PacketCreator.discoveredPacket(receivedPacket.getAddress(), receivedPacket.getPort(), name);
         sender.send(discoveredPacket);
+    }
+
+    private void checkConnections() {
+        for (Connection connection: connections) {
+            if (System.currentTimeMillis() - connection.getLastMessage() > Constants.CONNECTION_TIMEOUT) {
+                connection.close("Timeout");
+            }
+        }
     }
 }

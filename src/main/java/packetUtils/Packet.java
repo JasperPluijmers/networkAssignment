@@ -21,15 +21,12 @@ public class Packet {
         this.data = data;
     }
 
-    public Packet(byte[] packetData) {
+    public Packet(DatagramPacket datagramPacket) {
+        byte[] packetData = datagramPacket.getData();
         this.id = packetData[0];
         this.option = PacketOption.fromValue(packetData[1]);
         this.number = Arrays.copyOfRange(packetData,2,6);
-        this.data = Arrays.copyOfRange(packetData,6,packetData.length);
-    }
-
-    public Packet(DatagramPacket datagramPacket) {
-        this(Arrays.copyOfRange(datagramPacket.getData(),0,datagramPacket.getLength()));
+        this.data = Arrays.copyOfRange(packetData,6,datagramPacket.getLength());
     }
 
     public byte getId() {
