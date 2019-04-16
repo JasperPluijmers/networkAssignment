@@ -15,6 +15,8 @@ public class CheckSum {
         byte[] buffer = new byte[1024];
         while (in.read(buffer) != -1) {
         }
+        in.close();
+        check.close();
         return check.getChecksum().getValue();
     }
 }

@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class SendHandler {
 
     private static final int MAXIMUM_WINDOW_SIZE = 10;
-    private static final int RESEND_TIME = 100;
+    private static final int RESEND_TIME = 10;
     private final Sender sender;
     private final int destinationPort;
     private final InetAddress destinationAddress;
@@ -89,7 +89,6 @@ public class SendHandler {
         }
         if (!(bufferedInputStream.available() == 0 &&  sentPackets.size() == 0)) {
             try {
-
                 fillPackets();
             } catch (IOException e) {
                 e.printStackTrace();

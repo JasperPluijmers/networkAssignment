@@ -55,8 +55,8 @@ public class PacketCreator {
         return packetToUdp(packet, port, address);
     }
 
-    public static DatagramPacket filesPacket(String path, InetAddress address, int port, byte connectionId) {
-        Packet packet = new Packet(connectionId, PacketOption.Files, (byte) 0, FileLister.filesFormat(path).getBytes());
+    public static DatagramPacket filesPacket(String path, String visiblePath,  InetAddress address, int port, byte connectionId) {
+        Packet packet = new Packet(connectionId, PacketOption.Files, (byte) 0, FileLister.filesFormat(path, visiblePath).getBytes());
         return packetToUdp(packet, port, address);
     }
 
@@ -65,15 +65,15 @@ public class PacketCreator {
         return packetToUdp(packet, port, address);
     }
 
+    public static DatagramPacket bofPacket(String name, long length, byte id, InetAddress address, int port) {
+        Packet packet = new Packet(id, PacketOption.BeginOfFile, (byte) 1, (name + "+" + length).getBytes());
+        return packetToUdp(packet, port, address);
+    }
+
     public static DatagramPacket eofPacket(int number, byte id, InetAddress address, int port, long checksum) {
         ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
         buffer.putLong(checksum);
         Packet packet = new Packet(id, PacketOption.EndOfFile, number, buffer.array());
-        return packetToUdp(packet, port, address);
-    }
-
-    public static DatagramPacket bofPacket(String name, long length, byte id, InetAddress address, int port) {
-        Packet packet = new Packet(id, PacketOption.BeginOfFile, (byte) 1, (name + "+" + length).getBytes());
         return packetToUdp(packet, port, address);
     }
 

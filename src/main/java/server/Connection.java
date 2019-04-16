@@ -59,6 +59,7 @@ public class Connection extends Listener {
                          e.printStackTrace();
                      }
                  }
+                 break;
         }
     }
 
@@ -110,7 +111,7 @@ public class Connection extends Listener {
         sender.send(PacketCreator.errorPacket(message, destinationAddress, destinationPort, id));
     }
     private void handleFileRequest(String path) {
-        sender.send(PacketCreator.filesPacket(directory+path, destinationAddress, destinationPort, id));
+        sender.send(PacketCreator.filesPacket(directory+path, path, destinationAddress, destinationPort, id));
     }
 
     private void updateLastMessage() {

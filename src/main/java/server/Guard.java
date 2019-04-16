@@ -48,7 +48,6 @@ public class Guard extends Listener {
                 handleSetup(receivedPacket);
                 break;
         }
-        /*Logger.logPacket(packet);*/
     }
 
     private void handleSetup(DatagramPacket receivedPacket) {
@@ -67,7 +66,7 @@ public class Guard extends Listener {
 
     private void checkConnections() {
         for (Connection connection: connections) {
-            if (System.currentTimeMillis() - connection.getLastMessage() > Constants.CONNECTION_TIMEOUT_IN_MINUTES) {
+            if ((System.currentTimeMillis() - connection.getLastMessage())/60000 > Constants.CONNECTION_TIMEOUT_IN_MINUTES) {
                 connection.close("Timeout");
             }
         }

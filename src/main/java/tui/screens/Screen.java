@@ -1,4 +1,4 @@
-package tui;
+package tui.screens;
 
 public class Screen {
     private String title;
@@ -7,8 +7,9 @@ public class Screen {
     private static final int SCREEN_SIZE = 50;
     private static final int VERTICAL_SCREEN_SIZE = 15;
 
-
-
+    public Screen(String title) {
+        this(title, "");
+    }
     public Screen(String title, String content) {
         this.title = title;
         this.content = content;
@@ -24,6 +25,10 @@ public class Screen {
         }
         stringBuilder.append(seperator + "\n");
         return stringBuilder.toString();
+    }
+
+    public void handleCommand(String command) {
+
     }
 
     public static String center(String text){
@@ -47,4 +52,7 @@ public class Screen {
         return lines;
     }
 
+    protected void setContent(String content) {
+        this.content = content;
+    }
 }
