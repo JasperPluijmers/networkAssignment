@@ -17,14 +17,14 @@ public class Screen {
 
     public String getScreen() {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("/" + seperator + "\\\n");
-        stringBuilder.append("|" + center(title) + "|\n");
-        stringBuilder.append("|" + seperator + "/\n");
-        stringBuilder.append("|" + content.replace("\n", "\n|") + "\n");
+        stringBuilder.append("/").append(seperator).append("\\\n");
+        stringBuilder.append("|").append(center(title)).append("|\n");
+        stringBuilder.append("|").append(seperator).append("/\n");
+        stringBuilder.append("| ").append(content.replace("\n", "\n| ")).append("\n");
         for (int i = countLines(stringBuilder.toString()); i < VERTICAL_SCREEN_SIZE; i++) {
             stringBuilder.append("|\n");
         }
-        stringBuilder.append("\\" + seperator + "-\n");
+        stringBuilder.append("\\").append(seperator).append("-\n");
         return stringBuilder.toString();
     }
 

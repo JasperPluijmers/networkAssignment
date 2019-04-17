@@ -52,9 +52,6 @@ public class Client extends Listener {
 
     public void handlePackage(DatagramPacket datagramPacket) {
         Packet packet = new Packet(datagramPacket);
-        if (packet.getNumber() != 0) {
-            sendAcknowledge(packet.getNumber());
-        }
         switch (packet.getOption()) {
             case Discovered:
                 handleDiscovered(datagramPacket);
@@ -64,15 +61,18 @@ public class Client extends Listener {
                 break;
             case BeginOfFile:
                 handleBeginOfFile(datagramPacket);
+                sendAcknowledge(packet.getNumber());
                 break;
             case Data:
                 if (receiveHandler.isActive()) {
                     receiveHandler.newPacket(packet);
+                    sendAcknowledge(packet.getNumber());
                 }
                 break;
             case EndOfFile:
                 if (receiveHandler.isActive()) {
                     receiveHandler.endOfFile(packet);
+                    sendAcknowledge(packet.getNumber());
                 }
                 break;
             case Error:
@@ -97,7 +97,7 @@ public class Client extends Listener {
         Packet packet = new Packet(datagramPacket);
         String fileName = new String(packet.getData()).split("\\+")[0];
         String size = new String(packet.getData()).split("\\+")[1];
-        receiveHandler = new ReceiveHandler(directory, fileName, size, tui, new DownloadScreen(fileName, this::askFiles));
+        receiveHandler = new ReceiveHandler(directory, fileName, size, tui, new DownloadScreen(fileName, this::askFiles, this::pauseDownload));
         receiveHandler.init();
     }
 
@@ -147,6 +147,14 @@ public class Client extends Listener {
         } else {
             Logger.log("Directory does not exist");
             tui.update(new MenuScreen(this::discover,this::setDirectory, this.directory));
+        }
+    }
+
+    private void pauseDownload() {
+        if (receiveHandler.isActive()) {
+            receiveHandler.pause();
+        } else {
+            receiveHandler.unPause();
         }
     }
 

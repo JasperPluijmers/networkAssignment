@@ -141,11 +141,17 @@ public class ReceiveHandler {
         }
     }
 
-    public void pause(boolean pause) {
-        active = pause;
+    public void pause() {
+        active = false;
     }
 
     public boolean isActive() {
         return active;
+    }
+
+    public void unPause() {
+        Logger.log("unpause!");
+        active = true;
+        checkQueue();
     }
 }
