@@ -44,35 +44,36 @@ public class SendHandler {
     }
 
     public void init(File file) throws FileNotFoundException {
-        this.readFile=file;
+        this.readFile = file;
         Logger.log("starting download for: " + file);
         active = true;
         FileInputStream fileInputStream = new FileInputStream(file);
         bufferedInputStream = new BufferedInputStream(fileInputStream);
-        sender.send(PacketCreator.bofPacket(file.getName(),file.length(), id , destinationAddress, destinationPort));
+        sender.send(PacketCreator.bofPacket(file.getName(), file.length(), id, destinationAddress, destinationPort));
         number.set(2);
     }
 
     public void fillPackets() throws IOException {
         if (sentPackets.size() < MAXIMUM_WINDOW_SIZE) {
-            if (bufferedInputStream.available() > 0) {
+            if ( !isDone && bufferedInputStream.available() > 0) {
                 byte[] data = new byte[Constants.MAXIMUM_DATA_SIZE];
                 int bytesRead = bufferedInputStream.read(data);
                 DatagramPacket datagramPacket;
                 if (bytesRead < Constants.MAXIMUM_DATA_SIZE) {
                     datagramPacket = PacketCreator.dataPacket(number.incrementAndGet(), id, Arrays.copyOfRange(data, 0, bytesRead), destinationAddress, destinationPort);
                 } else {
-                     datagramPacket = PacketCreator.dataPacket(number.incrementAndGet(), id, data, destinationAddress, destinationPort);
+                    datagramPacket = PacketCreator.dataPacket(number.incrementAndGet(), id, data, destinationAddress, destinationPort);
 
                 }
                 sentPackets.add(new Packet(datagramPacket));
                 send(datagramPacket);
                 fillPackets();
-            } else if (!isDone){
+            } else if (!isDone) {
                 DatagramPacket datagramPacket = PacketCreator.eofPacket(number.incrementAndGet(), id, destinationAddress, destinationPort, CheckSum.getCheckSum(readFile.getAbsolutePath()));
                 send(datagramPacket);
                 sentPackets.add(new Packet(datagramPacket));
                 isDone = true;
+                bufferedInputStream.close();
             }
         }
     }
@@ -81,18 +82,16 @@ public class SendHandler {
         return this.active;
     }
 
-    public void acknowledge(Packet packet) throws IOException {
+    public void acknowledge(Packet packet) {
         int acknowledged = packet.getNumber();
         sentPackets.removeIf(sentPacket -> sentPacket.getNumber() == acknowledged);
         if (retransmitSchedules.containsKey(acknowledged)) {
             retransmitSchedules.get(acknowledged).cancel(true);
         }
-        if (!(bufferedInputStream.available() == 0 &&  sentPackets.size() == 0)) {
-            try {
-                fillPackets();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        try {
+            fillPackets();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

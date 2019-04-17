@@ -8,7 +8,7 @@ public class MenuScreen extends Screen {
     private stringMenuCommand setDownloadDirectory;
 
     public MenuScreen(MenuCommand discover, stringMenuCommand setDownloadDirectory, String directory) {
-        super("File Client", "Current directory: " + directory + "\n" + "1- Set download directory\n2- Discover servers");
+        super("File Client", "Current  download directory: " + directory + "\n\n" + "1- Set download directory\n2- Discover servers");
         this.discover = discover;
         this.setDownloadDirectory = setDownloadDirectory;
     }

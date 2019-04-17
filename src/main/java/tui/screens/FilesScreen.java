@@ -36,25 +36,24 @@ public class FilesScreen extends Screen {
 
         if (!currentPath.equals("/")) {
             stringBuilder.append(ANSI_REVERSE);
-            stringBuilder.append("0~ ..");
+            stringBuilder.append("0 ~ ..");
             stringBuilder.append(ANSI_RESET);
         }
 
         if (fileFormat.split(":").length > 1) {
             String folders = fileFormat.split(":")[1];
-            stringBuilder.append(ANSI_REVERSE);
             for (String folder : folders.split("\\|")) {
                 foldersMap.put(count, folder);
-                stringBuilder.append(count).append("~ ").append(folder).append("\n");
+                stringBuilder.append(ANSI_REVERSE);
+                stringBuilder.append(count).append(" ~ ").append(folder).append(ANSI_RESET).append("\n");
                 count++;
             }
-            stringBuilder.append(ANSI_RESET);
         }
         if (fileFormat.split(":").length > 2) {
             String files = fileFormat.split(":")[2];
             for (String file : files.split("\\|")) {
                 filesMap.put(count, file);
-                stringBuilder.append(count).append("- ").append(file).append("\n");
+                stringBuilder.append(count).append(" - ").append(file).append("\n");
                 count++;
             }
         }
@@ -76,9 +75,9 @@ public class FilesScreen extends Screen {
             askfiles.menuFunction(currentPath.substring(0,currentPath.lastIndexOf("/") + 1));
         }
         if (foldersMap.containsKey(commandNumber)) {
-            askfiles.menuFunction(currentPath + foldersMap.get(commandNumber));
+            askfiles.menuFunction(currentPath + "/" + foldersMap.get(commandNumber));
         } else if (filesMap.containsKey(commandNumber)) {
-            download.menuFunction(currentPath + filesMap.get(commandNumber));
+            download.menuFunction(currentPath + "/" + filesMap.get(commandNumber));
         } else {
             help();
         }

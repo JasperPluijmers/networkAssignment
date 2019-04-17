@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Guard extends Listener {
     private static final int LISTENING_PORT = 3651;
-    private static final String ROOT_DIRECTORY = "/home/jasper.pluijmers/nws";
+    private static final String ROOT_DIRECTORY = "/home/jasper.pluijmers/nws/";
 
     private static ScheduledExecutorService connectionChecker = Executors.newSingleThreadScheduledExecutor();
     private Sender sender;

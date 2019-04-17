@@ -25,7 +25,7 @@ public class ReceiveHandler {
     private int lastPackage;
     private boolean eofReached;
     private BufferedOutputStream bufferedOutputStream;
-    private float startTime;
+    private long startTime;
 
     private DownloadScreen screen;
     private Tui tui;
@@ -83,6 +83,8 @@ public class ReceiveHandler {
             if (lastWritten % 10000 == 0) {
                 if (hasTui) {
                     tui.update(screen.update(lastWritten, 100 * written / fileSize));
+                } else {
+                    Logger.log("Written package: " + lastWritten);
                 }
             }
             lastWritten++;
@@ -107,21 +109,24 @@ public class ReceiveHandler {
             e.printStackTrace();
         }
         if (receivedCheckSum == calculatedChecksum) {
-            float lapsedTime = (System.currentTimeMillis() - startTime)/1000;
+            float lapsedTime = ((float)(System.currentTimeMillis() - startTime)) / 1000 ;
             if (hasTui) {
                 tui.update(screen.last(true, lapsedTime, new File(writingPath.toString()).length()));
-            }/*
-            Logger.log("File: " + fileName + " received correctly!");
-            Logger.log("Transfer took: " + (System.currentTimeMillis() - startTime)/1000 + " seconds");
-            Logger.log("Rate: " + new File(writingPath.toString()).length()/lapsedTime + " b/s");*/
+            } else {
+                Logger.log("File: " + fileName + " received correctly!");
+                Logger.log("Transfer took: " + (System.currentTimeMillis() - startTime) / 1000 + " seconds");
+                Logger.log("Rate: " + new File(writingPath.toString()).length() / lapsedTime + " b/s");
+            }
         } else {
-            float lapsedTime = (System.currentTimeMillis() - startTime)/1000;/*
-            Logger.log("Checksum incorrect, received: " + receivedCheckSum + ". Calculated: " + calculatedChecksum);
-            Logger.log("Transfer took: " + (System.currentTimeMillis() - startTime)/1000 + " seconds");*/
+            float lapsedTime = ((float)(System.currentTimeMillis() - startTime)) / 1000 ;
             if (hasTui) {
                 tui.update(screen.last(false, lapsedTime, new File(writingPath.toString()).length()));
+            } else {
+            Logger.log("Checksum incorrect, received: " + receivedCheckSum + ". Calculated: " + calculatedChecksum);
+            Logger.log("Transfer took: " + (System.currentTimeMillis() - startTime)/1000 + " seconds");
             }
         }
+        active = false;
     }
 
     public void endOfFile(Packet packet) {

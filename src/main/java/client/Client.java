@@ -52,7 +52,6 @@ public class Client extends Listener {
 
     public void handlePackage(DatagramPacket datagramPacket) {
         Packet packet = new Packet(datagramPacket);
-        /*Logger.logPacket(packet);*/
         if (packet.getNumber() != 0) {
             sendAcknowledge(packet.getNumber());
         }

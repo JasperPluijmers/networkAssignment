@@ -12,7 +12,7 @@ public class DownloadScreen extends Screen {
     }
 
     public Screen update(int lastWritten, float v) {
-        this.content = "Packets written: " + lastWritten + "\nPercentage done: " + v;
+        this.content = "Packets written: " + lastWritten + "\nPercentage done: " + v + "%";
         super.setContent(content);
         return this;
     }
@@ -23,7 +23,8 @@ public class DownloadScreen extends Screen {
 
     public Screen last(boolean correct, float lapsedTime, long length) {
         done = true;
-        content += "\n Packet transferred correctly: " + correct + "\nTransferred: " + length + " bytes in " + lapsedTime + " seconds." + "\nPress [enter] to go back";
+        this.content = "Packets written: all" + "\nPercentage done: " + "100%";
+        content += "\nPacket transferred correctly: " + correct + "\nTransferred: " + length + " bytes in " + lapsedTime + " seconds." + "\nPress [enter] to go back";
         super.setContent(content);
         return this;
     }

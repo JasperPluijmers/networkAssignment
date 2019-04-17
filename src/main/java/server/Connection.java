@@ -33,7 +33,6 @@ public class Connection extends Listener {
         this.sender = new Sender(super.getSocket());
         this.id =(byte) new Random().nextInt();
         this.directory = directory;
-        sendHandler = new SendHandler(id, destinationAddress, destinationPort, sender);
     }
 
     public void init() {
@@ -53,11 +52,7 @@ public class Connection extends Listener {
                 break;
             case Acknowledge:
                  if (sendHandler.isActive()) {
-                     try {
                          sendHandler.acknowledge(packet);
-                     } catch (IOException e) {
-                         e.printStackTrace();
-                     }
                  }
                  break;
         }
@@ -87,6 +82,7 @@ public class Connection extends Listener {
     }
 
     private void handleDownloadRequest(String path) {
+        sendHandler = new SendHandler(id, destinationAddress, destinationPort, sender);
         File file = new File(directory + path);
         if (file.exists() && file.isFile()) {
             try {
@@ -111,7 +107,10 @@ public class Connection extends Listener {
         sender.send(PacketCreator.errorPacket(message, destinationAddress, destinationPort, id));
     }
     private void handleFileRequest(String path) {
-        sender.send(PacketCreator.filesPacket(directory+path, path, destinationAddress, destinationPort, id));
+        Logger.log(path);
+        Logger.log(directory + path);
+        Logger.log(directory + path.substring(1));
+        sender.send(PacketCreator.filesPacket(directory + path.substring(1), path, destinationAddress, destinationPort, id));
     }
 
     private void updateLastMessage() {

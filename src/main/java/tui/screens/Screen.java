@@ -4,7 +4,7 @@ public class Screen {
     private String title;
     private String content;
     private String seperator = new String(new char[SCREEN_SIZE]).replace('\0', '-');
-    private static final int SCREEN_SIZE = 50;
+    private static final int SCREEN_SIZE = 80;
     private static final int VERTICAL_SCREEN_SIZE = 15;
 
     public Screen(String title) {
@@ -17,13 +17,14 @@ public class Screen {
 
     public String getScreen() {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(center(title) + "\n");
-        stringBuilder.append(seperator + "\n");
-        stringBuilder.append(content + "\n");
+        stringBuilder.append("/" + seperator + "\\\n");
+        stringBuilder.append("|" + center(title) + "|\n");
+        stringBuilder.append("|" + seperator + "/\n");
+        stringBuilder.append("|" + content.replace("\n", "\n|") + "\n");
         for (int i = countLines(stringBuilder.toString()); i < VERTICAL_SCREEN_SIZE; i++) {
-            stringBuilder.append("\n");
+            stringBuilder.append("|\n");
         }
-        stringBuilder.append(seperator + "\n");
+        stringBuilder.append("\\" + seperator + "-\n");
         return stringBuilder.toString();
     }
 
@@ -36,7 +37,7 @@ public class Screen {
         float mid = (out.length()/2);
         float start = mid - (SCREEN_SIZE/2);
         float end = start + SCREEN_SIZE;
-        return out.substring((int)start, (int)end);
+        return out.substring((int)start, (int)end );
     }
 
     public static int countLines(String str) {
