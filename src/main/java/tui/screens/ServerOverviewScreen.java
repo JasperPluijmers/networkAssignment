@@ -1,6 +1,7 @@
 package tui.screens;
 
 import trafficUtils.Remote;
+import tui.functionalInterfaces.RemoteMenuCommand;
 import utils.Logger;
 
 import java.util.HashMap;

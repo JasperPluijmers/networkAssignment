@@ -1,6 +1,9 @@
 package tui.screens;
 
 import trafficUtils.Remote;
+import tui.functionalInterfaces.DoubleStringMenuCommand;
+import tui.functionalInterfaces.stringMenuCommand;
+import utils.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -8,6 +11,7 @@ import java.util.Map;
 public class FilesScreen extends Screen {
     public static final String ANSI_RESET = "\u001B[0m";
     private static final String ANSI_REVERSE = "\u001b[7m";
+    private final DoubleStringMenuCommand upload;
 
     private Map<Integer, String> foldersMap;
     private Map<Integer, String> filesMap;
@@ -17,13 +21,15 @@ public class FilesScreen extends Screen {
 
     private String currentPath;
 
-    public FilesScreen(Remote remote, String files, stringMenuCommand download, stringMenuCommand askfiles) {
+    public FilesScreen(Remote remote, String files, stringMenuCommand download, stringMenuCommand askfiles, DoubleStringMenuCommand upload) {
         super("Connected to: " + remote.getName() + " on: " + remote.getAddress());
         this.filesMap = new HashMap<>();
         this.foldersMap = new HashMap<>();
         this.download = download;
         this.askfiles = askfiles;
+        this.upload = upload;
         super.setContent(parseFiles(files));
+        Logger.log("Current dir: " + currentPath);
     }
 
     private String parseFiles(String fileFormat) {
@@ -63,6 +69,9 @@ public class FilesScreen extends Screen {
 
     @Override
     public void handleCommand(String command) {
+        if (command.split(" ").length == 2 && command.split(" ")[0].equals("up")) {
+            upload.menuFunction(command.split(" ")[1], currentPath + "/");
+        }
         int commandNumber;
         try {
             commandNumber = Integer.parseInt(command);
@@ -72,12 +81,13 @@ public class FilesScreen extends Screen {
         }
 
         if (commandNumber == 0) {
-            askfiles.menuFunction(currentPath.substring(0,currentPath.lastIndexOf("/") + 1));
+            String strippedSlash = currentPath.substring(0, currentPath.length() - 1);
+            askfiles.menuFunction(strippedSlash.substring(0,strippedSlash.lastIndexOf("/") + 1));
         }
         if (foldersMap.containsKey(commandNumber)) {
-            askfiles.menuFunction(currentPath + "/" + foldersMap.get(commandNumber));
+            askfiles.menuFunction(currentPath + foldersMap.get(commandNumber) + "/");
         } else if (filesMap.containsKey(commandNumber)) {
-            download.menuFunction(currentPath + "/" + filesMap.get(commandNumber));
+            download.menuFunction(currentPath + filesMap.get(commandNumber));
         } else {
             help();
         }

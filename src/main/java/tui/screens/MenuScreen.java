@@ -1,5 +1,7 @@
 package tui.screens;
 
+import tui.functionalInterfaces.MenuCommand;
+import tui.functionalInterfaces.stringMenuCommand;
 import utils.Logger;
 
 public class MenuScreen extends Screen {

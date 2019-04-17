@@ -45,6 +45,15 @@ public class ReceiveHandler {
         this.screen = downloadScreen;
     }
 
+    public ReceiveHandler(String directory, String relativePath, String fileSize) {
+        this.directory = directory + relativePath.substring(0, relativePath.lastIndexOf("/"));
+        this.fileName = relativePath.substring(relativePath.lastIndexOf("/"));
+        active = false;
+        eofReached = false;
+        this.fileSize = Float.valueOf(fileSize);
+        hasTui = false;
+    }
+
     public void init() {
         startTime = System.currentTimeMillis();
         File writingDirectory = new File(directory);
@@ -53,12 +62,12 @@ public class ReceiveHandler {
             try {
                 FileOutputStream fileOutputStream = new FileOutputStream(writingPath.toString(), true);
                 bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
+                active = true;
             } catch (IOException e) {
-                e.printStackTrace();
+                Logger.log("Can't write to file" + writingPath);
             }
             packetQueue = new HashMap<>();
             lastWritten = 2;
-            active = true;
         } else {
             Logger.log(directory + " is not a directory.");
         }

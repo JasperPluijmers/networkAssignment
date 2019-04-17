@@ -2,18 +2,14 @@ package client;
 
 import packetUtils.Packet;
 import packetUtils.PacketCreator;
-import packetUtils.requestCreator;
-import trafficUtils.Listener;
-import trafficUtils.ReceiveHandler;
-import trafficUtils.Sender;
-import trafficUtils.Remote;
-import tui.screens.DownloadScreen;
-import tui.screens.FilesScreen;
-import tui.screens.MenuScreen;
+import packetUtils.RequestCreator;
+import trafficUtils.*;
+import tui.screens.*;
 import tui.Tui;
-import tui.screens.ServerOverviewScreen;
 import utils.Logger;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.net.DatagramPacket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -31,6 +27,7 @@ public class Client extends Listener {
     private byte connectionId;
     private ReceiveHandler receiveHandler;
     private Tui tui;
+    private SendHandler sendHandler;
 
     public Client() {
         super();
@@ -43,7 +40,7 @@ public class Client extends Listener {
 
         Thread clientThread = new Thread(this);
         clientThread.start();
-        tui.update(new MenuScreen(this::discover,this::setDirectory, directory));
+        tui.update(new MenuScreen(this::discover, this::setDirectory, directory));
     }
 
     public static void main(String[] args) throws Exception {
@@ -53,6 +50,11 @@ public class Client extends Listener {
     public void handlePackage(DatagramPacket datagramPacket) {
         Packet packet = new Packet(datagramPacket);
         switch (packet.getOption()) {
+            case Acknowledge:
+                if (sendHandler.isActive()) {
+                    sendHandler.acknowledge(packet);
+                }
+                break;
             case Discovered:
                 handleDiscovered(datagramPacket);
                 break;
@@ -86,7 +88,7 @@ public class Client extends Listener {
     private void filePacketHandler(DatagramPacket datagramPacket) {
         Packet packet = new Packet(datagramPacket);
         Logger.log(new String(packet.getData()));
-        tui.update(new FilesScreen(connectedRemote, new String(packet.getData()), this::askDownload, this::askFiles));
+        tui.update(new FilesScreen(connectedRemote, new String(packet.getData()), this::askDownload, this::askFiles, this::startUpload));
     }
 
     private void errorHandler(DatagramPacket datagramPacket) {
@@ -95,14 +97,14 @@ public class Client extends Listener {
 
     private void handleBeginOfFile(DatagramPacket datagramPacket) {
         Packet packet = new Packet(datagramPacket);
-        String fileName = new String(packet.getData()).split("\\+")[0];
-        String size = new String(packet.getData()).split("\\+")[1];
+        String fileName = new String(packet.getData()).split("\\|")[0];
+        String size = new String(packet.getData()).split("\\|")[1];
         receiveHandler = new ReceiveHandler(directory, fileName, size, tui, new DownloadScreen(fileName, this::askFiles, this::pauseDownload));
         receiveHandler.init();
     }
 
     private void sendAcknowledge(int number) {
-        sender.send(PacketCreator.ackPacket(connectedRemote.getAddress(), connectedRemote.getPort(),number, connectionId));
+        sender.send(PacketCreator.ackPacket(connectedRemote.getAddress(), connectedRemote.getPort(), number, connectionId));
     }
 
     private void handleAccept(DatagramPacket datagramPacket) {
@@ -120,8 +122,30 @@ public class Client extends Listener {
             discoveredRemotes.add(newRemote);
             tui.update(new ServerOverviewScreen(this::setup, discoveredRemotes));
         }
-
         Logger.log("discovered servers: " + discoveredRemotes);
+    }
+
+    private void startUpload(String source, String destination) {
+        sendHandler = new SendHandler(connectionId, connectedRemote.getAddress(), connectedRemote.getPort(), sender, tui, new UploadScreen(source, this::askFiles, this::pauseUpload));
+        File file = new File(source);
+        try {
+            sendHandler.init(file, destination);
+        } catch (FileNotFoundException e) {
+            sendErrorMessage("File: " + source + " does not exist.");
+        }
+    }
+
+    private void pauseUpload() {
+        if (sendHandler.isActive()) {
+            sendHandler.pause();
+        } else {
+            sendHandler.unPause();
+        }
+
+    }
+
+    private void sendErrorMessage(String message) {
+        sender.send(PacketCreator.errorPacket(message, connectedRemote.getAddress(), connectedRemote.getPort(), connectionId));
     }
 
     private void setup(Remote remote) {
@@ -133,20 +157,20 @@ public class Client extends Listener {
     }
 
     private void askFiles(String path) {
-        sender.send(PacketCreator.requestPacket(requestCreator.filesRequest(path), connectedRemote.getAddress(), connectedRemote.getPort(), connectionId));
+        sender.send(PacketCreator.requestPacket(RequestCreator.filesRequest(path), connectedRemote.getAddress(), connectedRemote.getPort(), connectionId));
     }
 
     private void askDownload(String path) {
-        sender.send(PacketCreator.requestPacket(requestCreator.downloadRequest(path), connectedRemote.getAddress(), connectedRemote.getPort(), connectionId));
+        sender.send(PacketCreator.requestPacket(RequestCreator.downloadRequest(path), connectedRemote.getAddress(), connectedRemote.getPort(), connectionId));
     }
 
     private void setDirectory(String directory) {
         if (Files.exists(Paths.get(directory))) {
             this.directory = directory;
-            tui.update(new MenuScreen(this::discover,this::setDirectory, this.directory));
+            tui.update(new MenuScreen(this::discover, this::setDirectory, this.directory));
         } else {
             Logger.log("Directory does not exist");
-            tui.update(new MenuScreen(this::discover,this::setDirectory, this.directory));
+            tui.update(new MenuScreen(this::discover, this::setDirectory, this.directory));
         }
     }
 

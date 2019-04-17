@@ -39,7 +39,7 @@ public class Guard extends Listener {
     @Override
     public void handlePackage(DatagramPacket receivedPacket) {
         Packet packet = new Packet(receivedPacket);
-
+        Logger.logPacket(packet);
         switch (packet.getOption()) {
             case Discover:
                 handleDiscover(receivedPacket);

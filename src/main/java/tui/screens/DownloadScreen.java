@@ -1,5 +1,8 @@
 package tui.screens;
 
+import tui.functionalInterfaces.MenuCommand;
+import tui.functionalInterfaces.stringMenuCommand;
+
 public class DownloadScreen extends Screen {
 
     private String content;

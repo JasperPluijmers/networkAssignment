@@ -66,7 +66,7 @@ public class PacketCreator {
     }
 
     public static DatagramPacket bofPacket(String name, long length, byte id, InetAddress address, int port) {
-        Packet packet = new Packet(id, PacketOption.BeginOfFile, (byte) 1, (name + "+" + length).getBytes());
+        Packet packet = new Packet(id, PacketOption.BeginOfFile, (byte) 1, (name + "|" + length).getBytes());
         return packetToUdp(packet, port, address);
     }
 

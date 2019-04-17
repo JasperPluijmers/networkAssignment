@@ -2,6 +2,8 @@ package trafficUtils;
 
 import packetUtils.Packet;
 import packetUtils.PacketCreator;
+import tui.Tui;
+import tui.screens.UploadScreen;
 import utils.CheckSum;
 import utils.Logger;
 import utils.Constants;
@@ -20,6 +22,9 @@ public class SendHandler {
     private final Sender sender;
     private final int destinationPort;
     private final InetAddress destinationAddress;
+    private UploadScreen screen;
+    private Tui tui;
+    private boolean hasTui;
 
     private ScheduledExecutorService resendManager = Executors.newSingleThreadScheduledExecutor();
     private byte id;
@@ -30,6 +35,9 @@ public class SendHandler {
     private AtomicInteger number;
     private Map<Integer, ScheduledFuture> retransmitSchedules;
     private File readFile;
+    private float fileSize;
+    private float dataSent;
+    private long startingTime;
 
     public SendHandler(byte id, InetAddress destinationAddress, int destinationPort, Sender sender) {
         this.id = id;
@@ -39,18 +47,37 @@ public class SendHandler {
         this.destinationPort = destinationPort;
         this.number = new AtomicInteger(1);
         this.isDone = false;
-        retransmitSchedules = new HashMap<>();
-        sentPackets = new HashSet<>();
+        this.retransmitSchedules = new HashMap<>();
+        this.sentPackets = new HashSet<>();
     }
 
-    public void init(File file) throws FileNotFoundException {
+    public SendHandler(byte id, InetAddress destinationAddress, int destinationPort, Sender sender, Tui tui, UploadScreen screen) {
+        this(id, destinationAddress, destinationPort, sender);
+        this.hasTui = true;
+        this.tui = tui;
+        this.screen = screen;
+    }
+
+    public void init(File file, String destination) throws FileNotFoundException {
         this.readFile = file;
-        Logger.log("starting download for: " + file);
+        Logger.log("starting transfer for: " + file);
         active = true;
         FileInputStream fileInputStream = new FileInputStream(file);
         bufferedInputStream = new BufferedInputStream(fileInputStream);
-        sender.send(PacketCreator.bofPacket(file.getName(), file.length(), id, destinationAddress, destinationPort));
+        sender.send(PacketCreator.bofPacket(destination + file.getName(), file.length(), id, destinationAddress, destinationPort));
         number.set(2);
+
+        this.fileSize = file.length();
+        this.dataSent = 0;
+        this.startingTime = System.currentTimeMillis();
+
+        if (hasTui) {
+            tui.update(screen);
+        }
+    }
+
+    public void init(File file) throws FileNotFoundException {
+        init(file, "");
     }
 
     public void fillPackets() throws IOException {
@@ -63,10 +90,15 @@ public class SendHandler {
                     datagramPacket = PacketCreator.dataPacket(number.incrementAndGet(), id, Arrays.copyOfRange(data, 0, bytesRead), destinationAddress, destinationPort);
                 } else {
                     datagramPacket = PacketCreator.dataPacket(number.incrementAndGet(), id, data, destinationAddress, destinationPort);
-
                 }
+                dataSent += bytesRead;
                 sentPackets.add(new Packet(datagramPacket));
                 send(datagramPacket);
+                if (number.get() % 1000 == 0) {
+                    if (hasTui) {
+                        tui.update(screen.update(number.get(), 100 * dataSent / fileSize));
+                    }
+                }
                 fillPackets();
             } else if (!isDone) {
                 DatagramPacket datagramPacket = PacketCreator.eofPacket(number.incrementAndGet(), id, destinationAddress, destinationPort, CheckSum.getCheckSum(readFile.getAbsolutePath()));
@@ -93,6 +125,13 @@ public class SendHandler {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        if (isDone && sentPackets.isEmpty()) {
+            float lapsedTime = ((float) System.currentTimeMillis() - startingTime) / 1000;
+            if (hasTui) {
+                tui.update(screen.last(lapsedTime, (long) fileSize));
+            }
+        }
     }
 
     private void send(DatagramPacket datagramPacket) {
@@ -103,5 +142,13 @@ public class SendHandler {
 
     public void close() {
         active = false;
+    }
+
+    public void pause() {
+        this.active = false;
+    }
+
+    public void unPause() {
+        this.active = true;
     }
 }
