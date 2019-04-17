@@ -3,8 +3,8 @@ package packUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.Assert;
-import packetUtils.Packet;
-import packetUtils.PacketOption;
+import fileserver.packetUtils.Packet;
+import fileserver.packetUtils.PacketOption;
 
 import java.net.DatagramPacket;
 import java.net.InetAddress;
