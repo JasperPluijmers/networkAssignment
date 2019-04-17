@@ -8,9 +8,9 @@ To start a server give the home directory from which clients may download, for e
 "When starting a client, give the download directory: \
 "java -jar jarfile.jar -c /home/user/downloadFolder/"
 
+The server and client should be on the same local network.
 
-
-The tui should guide you through the process of downloading/uploading files.
+The clients tui should guide you through the process of downloading/uploading files.
 This software was tested mostly on linux, I give no guarantees on how well this works
 with windows filesystems. Also the tui uses ANSI characters so if your terminal does
 not suppor them, some things will look weird.
