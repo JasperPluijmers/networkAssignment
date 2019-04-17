@@ -1,6 +1,6 @@
 package fileserver.tui.screens;
 
-import fileserver.trafficUtils.Remote;
+import fileserver.utils.trafficUtils.Remote;
 import fileserver.tui.functionalInterfaces.DoubleStringMenuCommand;
 import fileserver.tui.functionalInterfaces.stringMenuCommand;
 import fileserver.utils.Logger;
@@ -8,6 +8,10 @@ import fileserver.utils.Logger;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * The Files screen gets shown after a server sends over available files and folders. It allows for
+ * opening new folders, downloading files and uploading files to the current folder.
+ */
 public class FilesScreen extends Screen {
     public static final String ANSI_RESET = "\u001B[0m";
     private static final String ANSI_REVERSE = "\u001b[7m";

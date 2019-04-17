@@ -1,4 +1,4 @@
-package fileserver.packetUtils;
+package fileserver.utils.packetUtils;
 
 public class RequestCreator {
 

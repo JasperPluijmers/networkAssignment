@@ -3,6 +3,10 @@ package fileserver.tui.screens;
 import fileserver.tui.functionalInterfaces.MenuCommand;
 import fileserver.tui.functionalInterfaces.stringMenuCommand;
 
+/**
+ * The download screen shows how far along a download is, in the end it shows the time spent on the download.
+ * It has pause and unpause functionality.
+ */
 public class DownloadScreen extends Screen {
 
     private String content;

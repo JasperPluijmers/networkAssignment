@@ -1,6 +1,6 @@
 package fileserver.tui.screens;
 
-import fileserver.trafficUtils.Remote;
+import fileserver.utils.trafficUtils.Remote;
 import fileserver.tui.functionalInterfaces.RemoteMenuCommand;
 import fileserver.utils.Logger;
 
@@ -8,6 +8,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * The server overview screen shows the discovered servers, it can then connect to one of them.
+ */
 public class ServerOverviewScreen extends Screen {
 
     private Map<Integer, Remote> remoteMap;

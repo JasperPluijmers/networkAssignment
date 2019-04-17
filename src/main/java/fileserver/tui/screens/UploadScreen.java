@@ -3,6 +3,10 @@ package fileserver.tui.screens;
 import fileserver.tui.functionalInterfaces.MenuCommand;
 import fileserver.tui.functionalInterfaces.stringMenuCommand;
 
+/**
+ * The upload screen shows how far along a upload is, in the end it shows the time spent on the upload.
+ * It has pause and unpause functionality.
+ */
 public class UploadScreen extends Screen {
 
     private String content;

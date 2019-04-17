@@ -1,6 +1,6 @@
-package fileserver.trafficUtils;
+package fileserver.utils.trafficUtils;
 
-import fileserver.packetUtils.Packet;
+import fileserver.utils.packetUtils.Packet;
 import fileserver.tui.Tui;
 import fileserver.tui.screens.DownloadScreen;
 import fileserver.utils.CheckSum;

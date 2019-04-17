@@ -1,4 +1,4 @@
-package fileserver.trafficUtils;
+package fileserver.utils.trafficUtils;
 
 import java.io.IOException;
 import java.net.DatagramPacket;

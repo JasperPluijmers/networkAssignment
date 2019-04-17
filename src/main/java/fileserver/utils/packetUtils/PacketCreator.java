@@ -1,6 +1,6 @@
-package fileserver.packetUtils;
+package fileserver.utils.packetUtils;
 
-import fileserver.trafficUtils.FileLister;
+import fileserver.utils.trafficUtils.FileLister;
 
 import java.net.DatagramPacket;
 import java.net.InetAddress;

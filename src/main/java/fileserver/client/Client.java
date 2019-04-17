@@ -1,9 +1,9 @@
 package fileserver.client;
 
-import fileserver.packetUtils.Packet;
-import fileserver.packetUtils.PacketCreator;
-import fileserver.packetUtils.RequestCreator;
-import fileserver.trafficUtils.*;
+import fileserver.utils.packetUtils.Packet;
+import fileserver.utils.packetUtils.PacketCreator;
+import fileserver.utils.packetUtils.RequestCreator;
+import fileserver.utils.trafficUtils.*;
 import fileserver.tui.screens.*;
 import fileserver.tui.Tui;
 import fileserver.utils.Logger;
@@ -17,9 +17,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * The Client class is the main class of the fileserver fileserver.client. It controls the state of the fileserver.client and couples the
+ * The Client class is the main class of the  client. It controls the state of the client and couples the
  * different handlers. It is a listener, which is bound to a random available socket. The different methods
- * are used to communicate with the fileserver.server. The user uses the fileserver.tui to control these methods.
+ * are used to communicate with the server. The user uses the tui to control these methods.
  */
 public class Client extends Listener {
 

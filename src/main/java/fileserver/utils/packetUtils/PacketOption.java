@@ -1,4 +1,4 @@
-package fileserver.packetUtils;
+package fileserver.utils.packetUtils;
 
 /**
  * The different options for packets. These are used in the protocol, for more information see the readme of the package

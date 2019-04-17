@@ -4,6 +4,9 @@ import fileserver.tui.functionalInterfaces.MenuCommand;
 import fileserver.tui.functionalInterfaces.stringMenuCommand;
 import fileserver.utils.Logger;
 
+/**
+ * The main menu screen, allows for discovery of servers and changing of the download directory
+ */
 public class MenuScreen extends Screen {
 
     private MenuCommand discover;

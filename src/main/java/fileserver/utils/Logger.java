@@ -1,6 +1,6 @@
 package fileserver.utils;
 
-import fileserver.packetUtils.Packet;
+import fileserver.utils.packetUtils.Packet;
 
 import java.sql.Timestamp;
 

@@ -1,10 +1,10 @@
 package fileserver.server;
 
-import fileserver.packetUtils.Packet;
-import fileserver.packetUtils.PacketCreator;
-import fileserver.packetUtils.PacketOption;
-import fileserver.packetUtils.Request;
-import fileserver.trafficUtils.*;
+import fileserver.utils.packetUtils.Packet;
+import fileserver.utils.packetUtils.PacketCreator;
+import fileserver.utils.packetUtils.PacketOption;
+import fileserver.utils.packetUtils.Request;
+import fileserver.utils.trafficUtils.*;
 import fileserver.utils.Logger;
 
 import java.io.File;
@@ -13,6 +13,10 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.util.Random;
 
+/**
+ * The connection handles the main communication between the server and the client. It handles requests starts
+ * file transfers.
+ */
 public class Connection extends Listener {
 
     protected Sender sender;
@@ -27,7 +31,7 @@ public class Connection extends Listener {
     public Connection(InetAddress address, int destinationPort, String directory) {
         super();
         this.sender = new Sender(super.getSocket());
-        connectedRemote = new Remote("fileserver/client", address, destinationPort);
+        connectedRemote = new Remote("client", address, destinationPort);
         this.id =(byte) new Random().nextInt();
         this.directory = directory;
         Thread listening = new Thread(this);

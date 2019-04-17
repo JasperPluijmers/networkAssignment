@@ -1,9 +1,9 @@
 package fileserver.server;
 
-import fileserver.packetUtils.Packet;
-import fileserver.packetUtils.PacketCreator;
-import fileserver.trafficUtils.Listener;
-import fileserver.trafficUtils.Sender;
+import fileserver.utils.packetUtils.Packet;
+import fileserver.utils.packetUtils.PacketCreator;
+import fileserver.utils.trafficUtils.Listener;
+import fileserver.utils.trafficUtils.Sender;
 import fileserver.utils.Constants;
 import fileserver.utils.Logger;
 
@@ -15,6 +15,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * The guard is the main server class. It listens on a socket on port 3651 and will handle the discovery of the server
+ * and setting up connections to the clients. It is also tasked with the timeout of connections.
+ */
 public class Guard extends Listener {
     private String ROOT_DIRECTORY;
 
@@ -30,7 +34,8 @@ public class Guard extends Listener {
         this.ROOT_DIRECTORY = directory;
         Thread thread = new Thread(this);
         thread.start();
-        connectionChecker.scheduleAtFixedRate(this::checkConnections, Constants.CONNECTION_TIMEOUT_IN_MINUTES, Constants.CONNECTION_TIMEOUT_IN_MINUTES, TimeUnit.MINUTES);
+        connectionChecker.scheduleAtFixedRate(this::checkConnections, Constants.CONNECTION_TIMEOUT_IN_MINUTES,
+                Constants.CONNECTION_TIMEOUT_IN_MINUTES, TimeUnit.MINUTES);
     }
 
     @Override

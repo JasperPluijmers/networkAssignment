@@ -1,4 +1,4 @@
-package fileserver.trafficUtils;
+package fileserver.utils.trafficUtils;
 
 
 import fileserver.utils.Constants;
